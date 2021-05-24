@@ -3,22 +3,31 @@ import http from 'http';
 import 'dotenv/config';
 import router from './routes/homepage';
 import morgan from 'morgan';
-import socketio from 'socket.io';
+import cors from 'cors';
 
 const app = express();
-const server = http.createServer(app);
-const io = new socketio.Server(server);
+app.use(cors());
+const httpServer = http.createServer(app);
+
+const io = require('socket.io')(httpServer, {
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+  },
+});
 
 app.use(express.json());
 app.use(morgan('tiny'));
 app.use('/', router);
 
-io.on('connection', (socket) => {
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
+io.on('connection', (socket: any) => {
+  console.log('connection established');
+  socket.on('increment', () => {
+    console.log('recieved this request');
+    io.emit('inc');
   });
 });
 
-server.listen(process.env.PORT, () => {
+httpServer.listen(process.env.PORT, () => {
   console.log(`server running on ${process.env.PORT}`);
 });
