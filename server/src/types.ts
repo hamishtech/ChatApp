@@ -4,7 +4,7 @@ interface Chat {
 }
 
 export interface Message {
-  chat: Chat;
+  content: Chat;
   to: string;
 }
 

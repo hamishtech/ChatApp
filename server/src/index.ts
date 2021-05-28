@@ -53,9 +53,9 @@ io.use((socket: any, next: any) => {
 });
 
 io.on('connection', async (socket: any) => {
-  let activeRoom = 'room1';
+  let activeRoom = 'General';
   if (socket.username) {
-    socket.emit('login_success');
+    socket.emit('login_success', { activeRoom });
     const users = [];
     //loop through all connected sockets and create the list of connected sockets/users
     for (let [id, socket] of io.of('/').sockets) {
@@ -76,10 +76,8 @@ io.on('connection', async (socket: any) => {
     socket.leave(activeRoom);
     activeRoom = room;
     socket.join(activeRoom);
-    io.to(activeRoom).emit('roomJoin', {
-      username: socket.username,
-      room,
-    });
+    io.to(socket.id).emit('change room', activeRoom);
+    io.to(socket.id).emit('room join msgs', chatLog[activeRoom]);
   });
 
   socket.on('retrieve chat', ({ to }: { to: string }) => {
@@ -87,11 +85,10 @@ io.on('connection', async (socket: any) => {
   });
 
   socket.on('newMsg', (msgObj: Message) => {
-    //'to' is a room
     if (!chatLog[msgObj.to]) {
-      chatLog[msgObj.to] = [msgObj.chat];
+      chatLog[msgObj.to] = [msgObj.content];
     } else {
-      chatLog[msgObj.to].push(msgObj.chat);
+      chatLog[msgObj.to].push(msgObj.content);
     }
     //send back the chat log for the room in the format of an array of type Chat
     io.to(msgObj.to).emit('newMsg', chatLog[msgObj.to]);

@@ -1,11 +1,12 @@
+import { ChakraProvider } from '@chakra-ui/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 import App from './App';
+import ToProvider from './context/ActiveRoomProvider';
 import SocketProvider from './context/SocketProvider';
-import UserProvider from './context/UserProvider';
 import UserListProvider from './context/UserListProvider';
-import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
+import UserProvider from './context/UserProvider';
+import './index.css';
 import theme from './theme';
 
 ReactDOM.render(
@@ -13,9 +14,11 @@ ReactDOM.render(
     <SocketProvider>
       <UserListProvider>
         <UserProvider>
-          <ChakraProvider theme={theme}>
-            <App />
-          </ChakraProvider>
+          <ToProvider>
+            <ChakraProvider theme={theme}>
+              <App />
+            </ChakraProvider>
+          </ToProvider>
         </UserProvider>
       </UserListProvider>
     </SocketProvider>

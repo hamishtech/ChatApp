@@ -1,19 +1,43 @@
+import { Alert, AlertIcon } from '@chakra-ui/alert';
+import { Button, IconButton } from '@chakra-ui/button';
+import { useDisclosure } from '@chakra-ui/hooks';
+import { CheckCircleIcon, EmailIcon } from '@chakra-ui/icons';
+import {
+    Badge,
+    Box,
+    Center,
+    Flex,
+    Heading,
+    List,
+    ListIcon,
+    ListItem,
+    Text
+} from '@chakra-ui/layout';
+import { Slide } from '@chakra-ui/transition';
 import React, { useContext, useEffect, useState } from 'react';
+import { ToContext } from '../context/ActiveRoomProvider';
 import { SocketContext } from '../context/SocketProvider';
 import { User, UserListContext } from '../context/UserListProvider';
-import { UserContext } from '../context/UserProvider';
 
 interface NewUser {
   status: boolean;
   username: string;
 }
 
+interface IsTyping {
+  status: boolean;
+  from: string;
+}
+
 const OnlineUsers = () => {
   //need to query users
   const socket = useContext(SocketContext);
   const [users, setUsersList] = useContext(UserListContext);
-  const [user, _] = useContext(UserContext);
-  const [newUser, setNewUser] = useState({ status: false, username: '' });
+  const [to, setCurrentTo] = useContext(ToContext);
+  const { isOpen, onToggle, onClose } = useDisclosure();
+  const [alertMsg, setAlertMsg] = useState('xxx has just joined the chat');
+
+  console.log(users);
 
   useEffect(() => {
     socket.on(
@@ -40,37 +64,94 @@ const OnlineUsers = () => {
           return 0;
         });
         setUsersList(sortedUsers);
-        setNewUser({ ...newUser, status: true });
+        onToggle();
+        setAlertMsg(`${newUser.username} just joined the chat`);
         setTimeout(() => {
-          setNewUser({ status: false, username: '' });
-        }, 5000);
+          onClose();
+          setAlertMsg('');
+        }, 2000);
       }
     );
+    // socket.on('typing', (msg: IsTyping) => {
+    //   return setTyping(msg);
+    // });
     return () => {
       socket.off('user update');
+      socket.off('typing');
     };
   }, [users]);
 
   return (
     <>
-      <div>
-        online users:
-        {users
-          ? users.map((user: User) => (
-              <div
-                key={user.userID}
-                onClick={() => {
-                  socket.emit('change room', user.userID);
-                }}
-              >
-                {user.username}
-              </div>
-            ))
-          : null}
-      </div>
-      {newUser.status ? (
-        <div>{newUser.username} has joined the chat</div>
-      ) : null}
+      <Flex direction='column' bg='gray.700' rounded={10} height='100%' ml={5}>
+        <Box mb={5}>
+          {' '}
+          <Center>
+            {' '}
+            <Heading color='teal' size='lg'>
+              Chat Participants
+            </Heading>
+          </Center>
+        </Box>
+        <Box>
+          {' '}
+          <List>
+            {users.map((user: User) => {
+              return (
+                <Flex
+                  key={user.userID}
+                  direction='row'
+                  justify='space-between'
+                  width='100%'
+                >
+                  <Box>
+                    <ListItem p={3} mb={1}>
+                      <Text fontSize='xl'>
+                        {' '}
+                        <ListIcon as={CheckCircleIcon} color='green.500' />
+                        {user.username}
+                        {to === user.userID ? (
+                          <Badge
+                            ml='1'
+                            variant='outline'
+                            fontSize='0.8em'
+                            colorScheme='green'
+                          >
+                            {' '}
+                            Selected{' '}
+                          </Badge>
+                        ) : null}
+                      </Text>
+                    </ListItem>
+                  </Box>
+                  <Center mr={5}>
+                    <IconButton
+                      variant='outline'
+                      colorScheme='teal'
+                      aria-label='Send email'
+                      icon={<EmailIcon />}
+                      onClick={() => {
+                        setCurrentTo(user.userID);
+                        socket.emit('change room', to);
+                      }}
+                    />{' '}
+                  </Center>
+                </Flex>
+              );
+            })}
+          </List>
+        </Box>
+      </Flex>
+      <Slide direction='top' in={isOpen} style={{ zIndex: 15 }}>
+        <Center>
+          {' '}
+          <Alert status='success'>
+            <AlertIcon />
+            {alertMsg}
+          </Alert>
+        </Center>
+      </Slide>
+      <Button onClick={onToggle}>Online user </Button>
     </>
   );
 };

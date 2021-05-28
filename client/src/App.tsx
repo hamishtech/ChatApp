@@ -1,9 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import './App.css';
-import ChatApp from './components/ChatApp';
-import OnlineUsers from './components/OnlineUsers';
-import SimpleCard from './pages/SignUp';
+import MainPage from './pages/MainPage';
 import SignUp from './pages/SignUp';
 
 function App() {
@@ -11,12 +9,10 @@ function App() {
     <React.Fragment>
       <Router>
         <Switch>
-          <Route exact path='/' component={SignUp} />
           <Route path='/chat'>
-            <ChatApp></ChatApp>
-            <OnlineUsers></OnlineUsers>
+            <MainPage />{' '}
           </Route>
-          <Route exact path='/test' component={SimpleCard} />
+          <Route exact path='/' component={SignUp} />
         </Switch>
       </Router>
     </React.Fragment>

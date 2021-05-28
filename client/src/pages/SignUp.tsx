@@ -1,20 +1,21 @@
 /* eslint-disable react/react-in-jsx-scope */
 import {
-  Alert,
-  AlertIcon,
-  Button,
-  Center,
-  Flex,
-  Heading,
-  Input,
+    Alert,
+    AlertIcon,
+    Button,
+    Center,
+    Flex,
+    Heading,
+    Input
 } from '@chakra-ui/react';
 import { useContext, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
+import { ToContext } from '../context/ActiveRoomProvider';
 import { SocketContext } from '../context/SocketProvider';
 import { User, UserListContext } from '../context/UserListProvider';
 import { UserContext } from '../context/UserProvider';
 
-export default function SimpleCard() {
+export default function SignUp() {
   const [, setUser] = useContext(UserContext);
   const [, setUsersList] = useContext(UserListContext);
   const socket = useContext(SocketContext);
@@ -23,6 +24,7 @@ export default function SimpleCard() {
   const [open, setOpen] = useState(false);
   const [openError, setError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [setCurrentTo] = useContext(ToContext);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSubmit = (e: any) => {
@@ -86,8 +88,9 @@ export default function SimpleCard() {
         setUsersList(sortedUsers);
       });
 
-      socket.on('login_success', () => {
+      socket.on('login_success', (msg: { activeRoom: string }) => {
         setOpen(true);
+        setCurrentTo(msg.activeRoom);
         setTimeout(() => {
           history.push('/chat');
         }, 2000);
